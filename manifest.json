@@ -1,0 +1,16 @@
+{
+    "name": "YouWork",
+    "description": "Prevent YouTube distractions.",
+    "version": "1.0",
+    "permissions": [
+        "activeTab",
+        "tabs", "https://www.youtube.com/"
+    ],
+    "content_scripts": [{
+        "matches": ["https://www.youtube.com/*"],
+        "js": ["background.js"],
+        "run_at": "document_start", 
+        "all_frames" : true
+    }],
+    "manifest_version": 2
+}
