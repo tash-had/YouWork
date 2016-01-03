@@ -1,1 +1,1 @@
-window.location = chrome.extension.getURL(); 
+window.location = "http://tash-had.github.io/YouWork/";  
