@@ -1,1 +1,1 @@
-window.location = chrome.extension.getURL("emptyYoutube.html"); 
+window.location = chrome.extension.getURL(); 
