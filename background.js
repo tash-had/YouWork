@@ -4,7 +4,7 @@ chrome.storage.local.get('youwork_is_paused', function(result) {
     if (result.youwork_is_paused === true) {
         console.log("YouWork paused. Redirect disabled.");
     } else {
-        window.location = "http://tash-had.github.io/YouWork/";
+        window.location = "http://youwork.ml";
     }
 });
 
