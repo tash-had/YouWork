@@ -26,7 +26,7 @@ try {
                     chrome.storage.local.set({
                         'youwork_is_paused': true
                     }, function() {
-                        alert("YouWork Paused. If YouTube is open, refresh it.");
+                        alert("YouWork Paused.");
                     });
                 }
             });

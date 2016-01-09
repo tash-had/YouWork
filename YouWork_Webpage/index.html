@@ -1,0 +1,52 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YouWork | Blank YT</title>
+    <link rel="stylesheet" href="css/foundation.css" />
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/alertify.min.css">
+    <script src="js/vendor/modernizr.js"></script>
+</head>
+
+<body>
+    <div class="row">
+        <div class="medium-12 columns">
+            <input type="text" id="searchField" placeholder="Search a YouTube video..." />
+        </div>
+    </div>
+    <div class="row">
+        <div class="medium-4 columns">
+            <button onclick="search().done(executeSearch);" id="searchBtn" class="button expand">Search</button>
+        </div>
+        <div class="medium-4 columns">
+            <input class="button success expand" onclick="loadMore().done(executeSearch);" id="loadMoreBtn" value="Load More" type="button" />
+        </div>
+        <div class="medium-4 columns">
+            <button id="clearBtn" onclick="hideGrid(true);" class="button alert expand">Clear</button>
+        </div>
+    </div>
+    <div class="row">
+        <ul class="medium-block-grid-4" id="videoGrid">
+        </ul>
+    </div>
+    <script src="js/vendor/jquery.js"></script>
+    <script src="js/foundation.min.js"></script>
+    <script src="js/apiheap.min.js"></script>
+    <script>
+        $(document).foundation();
+    </script>
+</body>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $("#loadMoreBtn").hide();
+        $("#clearBtn").hide();
+    });
+</script>
+<script src="js/alertify.min.js"></script>
+<script src="js/showvideo.js"></script>
+<script src="js/scripts.js"></script>
+
+</html>
