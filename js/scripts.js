@@ -27,17 +27,19 @@ var executeSearch = function() {
     var lb = "<br>"; 
 
     for(x=0;x<amount;x++){
-        document.write(
-            lb+ 
-            '<img src="'+thumbs[x] +'" height=150 width=200 alt="Video Thumbnail"/>'  + lb + 
-            '<b>Video Title: </b>' + titles[x] + lb +
+        document.getElementById('videoGrid').innerHTML = 
+        document.getElementById('videoGrid').innerHTML +  
+        '<li>'+ '<div class=videoDiv>' +
+        '<img src="'+thumbs[x] +'" height=150 width=200 alt="Video Thumbnail"/>'  + lb + 
+        '<b>Video Title: </b>' + titles[x] + lb +
            // '<iframe width="560" height="315" src="https://www.youtube.com/embed/'+ids[x]+'" frameborder="0" allowfullscreen></iframe>'+ lb + 
-            '<b>Video Description </b>' + descs[x] + lb + 
-            '<b>Channel Name: </b>' + channels[x] + lb + lb);
-    }
-}
+           '<span class="vidDescs">' + '<b>Video Description </b>' + descs[x] + '</span>' +  lb + 
+           '<b>Channel Name: </b>' + channels[x] + '</div>' +  '</li>' ;
+       }
+       minimizeDescs(); 
+   }
 
-function loadMore() {
+   function loadMore() {
 
     var defferedObj_two = $.Deferred();
     var searchQuery = $('#searchField').val();
@@ -55,4 +57,12 @@ function loadMore() {
     query_data.push(ytObj.RESPONSE);
 
     return defferedObj_two;
+}
+function minimizeDescs(){
+    $('.vidDescs').readmore({
+        speed: 75, 
+        maxHeight: 20, 
+        moreLink: '<a href="#">Read More</a>', 
+        lessLink: '<a href="#">Read Less</a>'
+    });
 }
