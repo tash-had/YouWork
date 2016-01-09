@@ -4,13 +4,26 @@
     "version": "1.0",
     "permissions": [
         "activeTab",
-        "tabs", "https://www.youtube.com/"
+        "tabs",
+        "contextMenus",
+        "storage"
     ],
+    "background": {
+        "scripts": ["background.js"]
+    },
     "content_scripts": [{
         "matches": ["https://www.youtube.com/*"],
+        "exclude_matches": ["https://www.youtube.com/embed/*"],
         "js": ["background.js"],
-        "run_at": "document_start", 
-        "all_frames" : true
+        "run_at": "document_start",
+        "all_frames": true
     }],
+    "browser_action": {},
+    "icons": {
+        "16": "img/icon_16.png",
+        "32": "img/icon_32.png",
+        "48": "img/icon_48.png",
+        "128": "img/icon_128.png"
+    },
     "manifest_version": 2
 }
