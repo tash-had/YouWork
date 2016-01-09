@@ -1,8 +1,3 @@
-$(document).ready(function() {
-    $("#loadMoreBtn").hide();
-    $("#clearBtn").hide();
-
-});
 var ytObj = new apiheap("youtube", ytKey),
     query_data, titles = ids = descs = channels = thumbs = type = amount = lb = [],
     loadMoreCount = 1;
@@ -14,10 +9,12 @@ function search() {
     query_data = [];
     var deferredObj = $.Deferred();
     var searchQuery = $('#searchField').val();
-    ytObj.youtube("search", "snippet", "q=" + searchQuery);
+    try {
+        ytObj.youtube("search", "snippet", "q=" + searchQuery);
+    } catch (err) {}
     setTimeout(function() {
         deferredObj.resolve();
-    }, 1000);
+    }, 420);
     query_data.push(ytObj.RESPONSE);
     $("#loadMoreBtn").show(200);
     $("#clearBtn").show(200);
@@ -34,8 +31,9 @@ var executeSearch = function() {
     amount = ids.length;
     lb = "<br>";
     $("#videoGrid").hide();
+
     for (loopCount = 0; loopCount < amount; loopCount++) {
-        if (type[loopCount] === "youtube#video") {
+        if (type[loopCount] === "youtube#video" || type[loopCount] === "youtube#playlist") {
             document.getElementById('videoGrid').innerHTML =
                 document.getElementById('videoGrid').innerHTML +
                 '<li>' +
@@ -64,19 +62,27 @@ function loadMore() {
 
     setTimeout(function() {
         defferedObj_two.resolve();
-    }, 1000);
+    }, 420);
     query_data.push(ytObj.RESPONSE);
 
     return defferedObj_two;
 }
 
 function showVideo(loopCount) {
-    alertify.YoutubeDialog(ids[loopCount]).set({
+    var embedId;
+    if (ids[loopCount].substr(0, 2) === "PL") {
+        embedId = "?list=" + ids[loopCount] + "&autoplay=1";
+    } else {
+        embedId = ids[loopCount] + "?enablejsapi=1&autoplay=1";
+    }
+    alertify.YoutubeDialog(embedId).set({
         frameless: false,
         title: channels[loopCount],
-        /*onclose: function() {
-            $("#videoGrid").show(400);
-       }*/
+        onclose: function() {
+            if (embedId.substr(0, 1) === "?") {
+                alertify.success('<span style="color:white;">Refresh the page to stop background player.</span>');
+            }
+        }
     });
     hideGrid(1);
 }
