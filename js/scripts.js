@@ -71,9 +71,9 @@ var executeSearch = function() {
 function showVideo(loopCount) {
     var embedId;
     if (ids[loopCount].substr(0, 2) === "PL") {
-        embedId = "?list=" + ids[loopCount] + "&enablejsapi=1&autoplay=1&rel=0&showinfo=0&iv_load_policy=3&color=white&disablekb=1&fs=0";
+        embedId = "?list=" + ids[loopCount] + "&enablejsapi=1&autoplay=1&rel=0&showinfo=0&iv_load_policy=3&color=white&fs=0";
     } else {
-        embedId = ids[loopCount] + "?enablejsapi=1&autoplay=1&rel=0&showinfo=0&iv_load_policy=3&color=white&disablekb=1&fs=0";
+        embedId = ids[loopCount] + "?enablejsapi=1&autoplay=1&rel=0&showinfo=0&iv_load_policy=3&color=white&fs=0";
     }
     alertify.YoutubeDialog(embedId).set({
         frameless: false,
