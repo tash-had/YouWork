@@ -79,7 +79,7 @@ function showVideo(loopCount) {
         frameless: false,
         title: titles[loopCount],
         onclose: function() {
-            alertify.success('<span style="display:block;text-align:center;color:white;">Video Paused.');
+            alertify.success('<span style="display:block;text-align:center;color:white;">Video Paused.',2);
         }
     });
     hideGrid(1);
