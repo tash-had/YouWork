@@ -11,7 +11,10 @@ function search() {
     var searchQuery = $('#searchField').val();
     try {
         ytObj.youtube("search", "snippet", "q=" + searchQuery);
-    } catch (err) {}
+    } catch (err) {
+        console.log("caught it"); 
+        search().done(executeSearch);
+    }
     setTimeout(function() {
         deferredObj.resolve();
     }, 420);
