@@ -61,7 +61,26 @@
     $(document).ready(function() {
         $("#loadMoreBtn").hide();
         $("#clearBtn").hide();
+        var videoId = getUrlParameter("videoId");
+        if (videoId != undefined && videoId != "undefined" && videoId != null) {
+            showVideo(-1, videoId);
+        }
     });
+
+    var getUrlParameter = function getUrlParameter(sParam) {
+        var sPageURL = window.location.search.substring(1),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
+
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+            }
+        }
+    };
 </script>
 <script src="js/alertify.min.js"></script>
 <script src="js/showvideo.js"></script>
