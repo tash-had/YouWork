@@ -1,9 +1,7 @@
-//Declaring/initializing variables 
-var ytObj = new apiheap("youtube", "MY_API_KEY"),
-    query_data, titles = ids = descs = channels = thumbs = type = amount = lb = [],
-    loadMoreCount = 1;
+var ytObj = new apiheap("youtube", MY_API_KEY),
+query_data, titles = ids = descs = channels = thumbs = type = amount = lb = [],
+loadMoreCount = 1;
 
-//Making search query 
 function search() {
     hideGrid();
     loadMoreCount = 1;
@@ -13,21 +11,20 @@ function search() {
     var searchQuery = $('#searchField').val();
     try {
         ytObj.youtube("search", "snippet", "q=" + searchQuery);
-    } catch (err) {}
-    //Resolving defferred object
+    } catch (err) {
+        console.log("caught it"); 
+        search().done(executeSearch);
+    }
     setTimeout(function() {
         deferredObj.resolve();
     }, 420);
-    //Pushing data into array
     query_data.push(ytObj.RESPONSE);
     $("#loadMoreBtn").show(200);
     $("#clearBtn").show(200);
     return deferredObj;
 }
 
-//Function that is run automatically after search query/load more function   
 var executeSearch = function() {
-    //parsing data from data array using parse() function 
     titles = ytObj.parse(query_data, "vid_titles");
     ids = ytObj.parse(query_data, "vid_ids");
     //descs = ytObj.parse(query_data, "vid_descriptions");
@@ -38,70 +35,78 @@ var executeSearch = function() {
     lb = "<br>";
     $("#videoGrid").hide();
 
-    //For-loop to loop through data, and print it
     for (loopCount = 0; loopCount < amount; loopCount++) {
         if (type[loopCount] === "youtube#video" || type[loopCount] === "youtube#playlist") {
             document.getElementById('videoGrid').innerHTML =
-                document.getElementById('videoGrid').innerHTML +
-                '<li>' +
-                '<a href=javascript:void(0) onclick=showVideo(' + loopCount + ');><img src="' + thumbs[loopCount] + '" height=150 width=200 alt="Video Thumbnail"/></a>' + lb +
-                '<b>Video Title: </b>' + titles[loopCount] + lb +
+            document.getElementById('videoGrid').innerHTML +
+            '<li>' +
+            '<a href=javascript:void(0) onclick=showVideo(' + loopCount + ');><img src="' + thumbs[loopCount] + '" height=150 width=200 alt="Video Thumbnail"/></a>' + lb +
+            '<b>Video Title: </b>' + titles[loopCount] + lb +
                 //'<span class="vidDescs">' + '<b>Video Description </b>' + descs[loopCount] + '</span>' + lb +
                 '<b>Channel Name: </b>' + channels[loopCount] + '</li>';
-        }
-    }
-    $("#videoGrid").show(200);
-}
-
-//Function to load more results
-function loadMore() {
-    hideGrid();
-
-    var defferedObj_two = $.Deferred();
-    var searchQuery = $('#searchField').val();
-
-    //Using nextPageToken from YouTube JSON data to get results from next page
-    try {
-        loadMoreCount++;
-        ytObj.youtube("search", "snippet", "q=" + searchQuery, pageToken(ytObj.RESPONSE));
-        if (!loadMoreCount === 1) {}
-        $('#loadMoreBtn').attr("value", "Load More | Pg.1-" + loadMoreCount);
-    } catch (err) {
-        console.log("Request Error. You may be making too many simultaneous requests.");
-    }
-
-    //Resolving defferred object
-    setTimeout(function() {
-        defferedObj_two.resolve();
-    }, 420);
-    query_data.push(ytObj.RESPONSE);
-
-    return defferedObj_two;
-}
-
-//Function to show video 
-function showVideo(loopCount) {
-    //Checking if result is a playlist or not, and changing iFrame source accordingly
-    var embedId;
-    if (ids[loopCount].substr(0, 2) === "PL") {
-        embedId = "?list=" + ids[loopCount] + "&autoplay=1";
-    } else {
-        embedId = ids[loopCount] + "?enablejsapi=1&autoplay=1";
-    }
-    //Using alertify.YoutubeDialog to show video in alert dialog 
-    alertify.YoutubeDialog(embedId).set({
-        frameless: false,
-        title: channels[loopCount],
-        onclose: function() {
-            if (embedId.substr(0, 1) === "?") {
-                alertify.success('<span style="color:white;">Refresh the page to stop background player.</span>');
             }
         }
-    });
-    hideGrid(1);
-}
+        $("#videoGrid").show(200);
+    }
 
-//Function to hide video grid. 
+    function loadMore() {
+        hideGrid();
+
+        var defferedObj_two = $.Deferred();
+        var searchQuery = $('#searchField').val();
+        try {
+            loadMoreCount++;
+            ytObj.youtube("search", "snippet", "q=" + searchQuery, pageToken(ytObj.RESPONSE));
+            if (!loadMoreCount === 1) {}
+                $('#loadMoreBtn').attr("value", "Load More | Pg.1-" + loadMoreCount);
+        } catch (err) {
+            console.log("Request Error. You may be making too many simultaneous requests.");
+        }
+
+        setTimeout(function() {
+            defferedObj_two.resolve();
+        }, 420);
+        query_data.push(ytObj.RESPONSE);
+
+        return defferedObj_two;
+    }
+//enablejsapi=1 to embedd params to shut off vid on close
+function showVideo(loopCount, videoId) {
+    var embedId;
+    var titleToUse;
+    var videoEmbedSuffix = "?enablejsapi=1&autoplay=1&rel=0&showinfo=0&iv_load_policy=3&color=white&fs=0&disablekb=0&cc_load_policy=0";
+    
+    if (loopCount == -1 && (videoId != undefined && videoId != "undefined" && videoId != null) && videoId.length > 3) {
+        // A specific video has been requested (i.e. user clicked a link)
+        embedId = videoId + videoEmbedSuffix;
+        // don't know the title in this case since we didnt run a search
+        titleToUse = "";
+    }
+    else {
+        if (ids[loopCount].substr(0, 2) === "PL") {
+            embedId = "?list=" + ids[loopCount] + "&enablejsapi=1&autoplay=1&rel=0&iv_load_policy=3&color=white&fs=0&disablekb=0&cc_load_policy=0";
+        } else {
+            embedId = ids[loopCount] + videoEmbedSuffix;
+        }
+
+        titleToUse = titles[loopCount];
+    }
+
+    alertify.YoutubeDialog(embedId).set({
+        frameless: false,
+        title: titleToUse,
+        onclose: function() {
+            alertify.success('<span style="display:block;text-align:center;color:white;">Video Paused.',2);
+        }
+    });
+    
+    // We want to hide all except the search field and the clear button, so we can give the user
+    // the choice of re-using their last search query or clearing it. 
+    hideGrid();
+    query_data = [];
+    $("#loadMoreBtn").hide(200);
+    loadMoreCount = 1;
+}
 function hideGrid(page) {
     $("#videoGrid").hide(200, function() {
         document.getElementById('videoGrid').innerHTML = "";
@@ -115,7 +120,6 @@ function hideGrid(page) {
     }
 }
 
-//Function to initiate search when enter button is pressed while search field has focus
 $("#searchField").keyup(function(event) {
     if (event.keyCode == 13) {
         $("#searchBtn").click();

@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>YouWork | Blank YT</title>
+    <link rel="shortcut icon" type="img/png" href="img/favicon.png"/>
     <link rel="stylesheet" href="css/foundation.css" />
     <link rel="stylesheet" type="text/css" href="css/main.css">
     <link rel="stylesheet" type="text/css" href="css/alertify.min.css">
@@ -12,7 +13,7 @@
 </head>
 
 <body>
-    <a style="float:right;padding: 1%;" href="http://tash-had.com/blog.html#youwork" target="_blank">What is this?</a>
+    <a style="float:right;padding: 1%;" href="http://tash-had.com/blog.html#youwork" target="_blank">What's this?</a>
     <div class="row">
         <div class="medium-12 columns">
             <input type="text" id="searchField" placeholder="Search a YouTube video..." />
@@ -37,14 +38,33 @@
     <script src="js/foundation.min.js"></script>
     <script src="js/apiheap.min.js"></script>
     <script>
-    $(document).foundation();
+        $(document).foundation();
     </script>
 </body>
 <script type="text/javascript">
-$(document).ready(function() {
-    $("#loadMoreBtn").hide();
-    $("#clearBtn").hide();
-});
+    $(document).ready(function() {
+        $("#loadMoreBtn").hide();
+        $("#clearBtn").hide();
+        var videoId = getUrlParameter("videoId");
+        if (videoId != undefined && videoId != "undefined" && videoId != null) {
+            showVideo(-1, videoId);
+        }
+    });
+
+    var getUrlParameter = function getUrlParameter(sParam) {
+        var sPageURL = window.location.search.substring(1),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
+
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+            }
+        }
+    };
 </script>
 <script src="js/alertify.min.js"></script>
 <script src="js/showvideo.js"></script>
