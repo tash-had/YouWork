@@ -76,7 +76,7 @@ function showVideo(loopCount, videoId) {
     var titleToUse;
     var videoEmbedSuffix = "?enablejsapi=1&autoplay=1&rel=0&showinfo=0&iv_load_policy=3&color=white&fs=0&disablekb=0&cc_load_policy=0";
     
-    if (videoId != undefined && videoId != "undefined" && videoId.length > 3) {
+    if (loopCount == -1 && (videoId == undefined || videoId == "undefined" || videoId == null) && videoId.length > 3) {
         // A specific video has been requested (i.e. user clicked a link)
         embedId = videoId + videoEmbedSuffix;
         // don't know the title in this case since we didnt run a search
