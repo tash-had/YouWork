@@ -71,21 +71,41 @@ var executeSearch = function() {
         return defferedObj_two;
     }
 //enablejsapi=1 to embedd params to shut off vid on close
-function showVideo(loopCount) {
+function showVideo(loopCount, videoId) {
     var embedId;
-    if (ids[loopCount].substr(0, 2) === "PL") {
-        embedId = "?list=" + ids[loopCount] + "&enablejsapi=1&autoplay=1&rel=0&iv_load_policy=3&color=white&fs=0&disablekb=0&cc_load_policy=0";
-    } else {
-        embedId = ids[loopCount] + "?enablejsapi=1&autoplay=1&rel=0&showinfo=0&iv_load_policy=3&color=white&fs=0&disablekb=0&cc_load_policy=0";
+    var titleToUse;
+    var videoEmbedSuffix = "?enablejsapi=1&autoplay=1&rel=0&showinfo=0&iv_load_policy=3&color=white&fs=0&disablekb=0&cc_load_policy=0";
+    
+    if (videoId != undefined && videoId != "undefined" && videoId.length > 3) {
+        // A specific video has been requested (i.e. user clicked a link)
+        embedId = videoId + videoEmbedSuffix;
+        // don't know the title in this case since we didnt run a search
+        titleToUse = "";
     }
+    else {
+        if (ids[loopCount].substr(0, 2) === "PL") {
+            embedId = "?list=" + ids[loopCount] + "&enablejsapi=1&autoplay=1&rel=0&iv_load_policy=3&color=white&fs=0&disablekb=0&cc_load_policy=0";
+        } else {
+            embedId = ids[loopCount] + videoEmbedSuffix;
+        }
+
+        titleToUse = titles[loopCount];
+    }
+
     alertify.YoutubeDialog(embedId).set({
         frameless: false,
-        title: titles[loopCount],
+        title: titleToUse,
         onclose: function() {
             alertify.success('<span style="display:block;text-align:center;color:white;">Video Paused.',2);
         }
     });
-    hideGrid(1);
+    
+    // We want to hide all except the search field and the clear button, so we can give the user
+    // the choice of re-using their last search query or clearing it. 
+    hideGrid();
+    query_data = [];
+    $("#loadMoreBtn").hide(200);
+    loadMoreCount = 1;
 }
 function hideGrid(page) {
     $("#videoGrid").hide(200, function() {
