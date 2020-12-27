@@ -78,12 +78,11 @@ function showVideo(loopCount) {
     } else {
         embedId = ids[loopCount] + "?enablejsapi=1&autoplay=1&rel=0&showinfo=0&iv_load_policy=3&color=white&fs=0&disablekb=0&cc_load_policy=0";
     }
+
+    // NOTE: You can add an onClose param in alertify.YoutubeDialog(embedId).set({onClose: function(){}})
     alertify.YoutubeDialog(embedId).set({
         frameless: false,
-        title: titles[loopCount],
-        onclose: function() {
-            alertify.success('<span style="display:block;text-align:center;color:white;">Video Paused.',2);
-        }
+        title: titles[loopCount]
     });
     hideGrid(1);
 }
