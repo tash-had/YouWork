@@ -1,47 +1,53 @@
-var paused_youwork;
+const TOGGLE_MENU_ID = "youwork-toggle";
+const ICON_PATH = "img/icon_128.png";
 
-chrome.storage.local.get('youwork_is_paused', function (result) {
-    if (result.youwork_is_paused === true) {
-        console.log("YouWork paused. Redirect disabled.");
-    } else {
+function ensureContextMenu() {
+    chrome.contextMenus.removeAll(() => {
+        chrome.contextMenus.create({
+            id: TOGGLE_MENU_ID,
+            title: "Pause/Resume YouWork",
+            contexts: ["action"],
+        });
+    });
+}
 
-        var currentUrl = location.href;
-        var redirectUrl = "https://tash-had.github.io/YouWork";
+function showNotification(message) {
+    chrome.notifications.create({
+        type: "basic",
+        iconUrl: ICON_PATH,
+        title: "YouWork",
+        message,
+    });
+}
 
-        var regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-        var match = currentUrl.match(regExp);
-        if (match && match[2].length == 11) {
-            var videoId = match[2];
-            redirectUrl = redirectUrl + "?videoId=" + videoId; 
-        }
+ensureContextMenu();
 
-        window.location = redirectUrl;
-    }
+chrome.runtime.onInstalled.addListener(() => {
+    ensureContextMenu();
 });
 
-try {
-    chrome.contextMenus.removeAll();
-    chrome.contextMenus.create({
-        title: "Pause/Resume YouWork",
-        contexts: ["browser_action"],
-        onclick: function () {
-            chrome.storage.local.get('youwork_is_paused', function (result) {
-                paused_youwork = result.youwork_is_paused;
-                if (paused_youwork == true) {
-                    chrome.storage.local.set({
-                        'youwork_is_paused': false
-                    }, function () {
-                        alert("YouWork Resumed. If YouTube is open, refresh it.");
-                    });
-                } else {
-                    chrome.storage.local.set({
-                        'youwork_is_paused': true
-                    }, function () {
-                        alert("YouWork Paused.");
-                    });
-                }
-            });
+chrome.runtime.onStartup.addListener(() => {
+    ensureContextMenu();
+});
 
-        }
+chrome.contextMenus.onClicked.addListener((info) => {
+    if (info.menuItemId !== TOGGLE_MENU_ID) {
+        return;
+    }
+
+    chrome.storage.local.get("youwork_is_paused", (result) => {
+        const paused = result.youwork_is_paused === true;
+        const newValue = !paused;
+        chrome.storage.local.set({ youwork_is_paused: newValue }, () => {
+            if (chrome.runtime.lastError) {
+                console.error("Failed to update pause state", chrome.runtime.lastError);
+                return;
+            }
+
+            const message = newValue
+                ? "YouWork Paused."
+                : "YouWork Resumed. If YouTube is open, refresh it.";
+            showNotification(message);
+        });
     });
-} catch (err) { }
+});
