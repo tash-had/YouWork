@@ -2,26 +2,41 @@ var ytObj = new apiheap("youtube", MY_API_KEY),
 query_data, titles = ids = descs = channels = thumbs = type = amount = lb = [],
 loadMoreCount = 1;
 
+function rejectedPromise(err) {
+    var deferred = $.Deferred();
+    return deferred.reject(err).promise();
+}
+
 function search() {
+    var searchQuery = $('#searchField').val().trim();
+
+    if (searchQuery.length === 0) {
+        return rejectedPromise();
+    }
+
     hideGrid();
     loadMoreCount = 1;
     $('#loadMoreBtn').attr("value", "Load More | Pg.1-" + loadMoreCount);
     query_data = [];
-    var deferredObj = $.Deferred();
-    var searchQuery = $('#searchField').val();
+
     try {
-        ytObj.youtube("search", "snippet", "q=" + searchQuery);
+        ytObj.youtube("search", "snippet", "q=" + encodeURIComponent(searchQuery));
     } catch (err) {
-        console.log("caught it"); 
-        search().done(executeSearch);
+        console.log("Request Error while performing search:", err);
+        return rejectedPromise(err);
     }
-    setTimeout(function() {
-        deferredObj.resolve();
-    }, 420);
-    query_data.push(ytObj.RESPONSE);
+
+    var request = ytObj.RESPONSE;
+
+    if (!request || typeof request.done !== "function") {
+        return rejectedPromise();
+    }
+
+    query_data.push(request);
     $("#loadMoreBtn").show(200);
     $("#clearBtn").show(200);
-    return deferredObj;
+
+    return request;
 }
 
 var executeSearch = function() {
@@ -52,23 +67,39 @@ var executeSearch = function() {
     function loadMore() {
         hideGrid();
 
-        var defferedObj_two = $.Deferred();
-        var searchQuery = $('#searchField').val();
-        try {
-            loadMoreCount++;
-            ytObj.youtube("search", "snippet", "q=" + searchQuery, pageToken(ytObj.RESPONSE));
-            if (!loadMoreCount === 1) {}
-                $('#loadMoreBtn').attr("value", "Load More | Pg.1-" + loadMoreCount);
-        } catch (err) {
-            console.log("Request Error. You may be making too many simultaneous requests.");
+        var searchQuery = $('#searchField').val().trim();
+        if (searchQuery.length === 0) {
+            return rejectedPromise();
         }
 
-        setTimeout(function() {
-            defferedObj_two.resolve();
-        }, 420);
-        query_data.push(ytObj.RESPONSE);
+        var previousResponse = query_data[query_data.length - 1];
+        var nextPageToken;
 
-        return defferedObj_two;
+        try {
+            nextPageToken = pageToken(previousResponse);
+        } catch (err) {
+            console.log("Unable to determine next page token:", err);
+            return rejectedPromise(err);
+        }
+
+        try {
+            loadMoreCount++;
+            ytObj.youtube("search", "snippet", "q=" + encodeURIComponent(searchQuery), nextPageToken);
+            $('#loadMoreBtn').attr("value", "Load More | Pg.1-" + loadMoreCount);
+        } catch (err) {
+            console.log("Request Error. You may be making too many simultaneous requests.", err);
+            return rejectedPromise(err);
+        }
+
+        var request = ytObj.RESPONSE;
+
+        if (!request || typeof request.done !== "function") {
+            return rejectedPromise();
+        }
+
+        query_data.push(request);
+
+        return request;
     }
 //enablejsapi=1 to embedd params to shut off vid on close
 function showVideo(loopCount, videoId) {
