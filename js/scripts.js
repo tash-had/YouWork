@@ -1,30 +1,45 @@
-var ytObj = new apiheap("youtube", ytKey),
-    query_data, titles = ids = descs = channels = thumbs = type = amount = lb = [],
-    loadMoreCount = 1;
+var ytObj = new apiheap("youtube", MY_API_KEY),
+query_data, titles = ids = descs = channels = thumbs = type = amount = lb = [],
+loadMoreCount = 1;
+
+function rejectedPromise(err) {
+    var deferred = $.Deferred();
+    return deferred.reject(err).promise();
+}
 
 function search() {
+    var searchQuery = $('#searchField').val().trim();
+
+    if (searchQuery.length === 0) {
+        return rejectedPromise();
+    }
+
     hideGrid();
     loadMoreCount = 1;
     $('#loadMoreBtn').attr("value", "Load More | Pg.1-" + loadMoreCount);
     query_data = [];
-    var deferredObj = $.Deferred();
-    var searchQuery = $('#searchField').val();
+
     try {
-        ytObj.youtube("search", "snippet", "q=" + searchQuery);
+        ytObj.youtube("search", "snippet", "q=" + encodeURIComponent(searchQuery));
     } catch (err) {
-        console.log("caught it");
-        search().done(executeSearch);
+        console.log("Request Error while performing search:", err);
+        return rejectedPromise(err);
     }
-    setTimeout(function () {
-        deferredObj.resolve();
-    }, 420);
-    query_data.push(ytObj.RESPONSE);
+
+    var request = ytObj.RESPONSE;
+
+    if (!request || typeof request.done !== "function") {
+        return rejectedPromise();
+    }
+
+    query_data.push(request);
     $("#loadMoreBtn").show(200);
     $("#clearBtn").show(200);
-    return deferredObj;
+
+    return request;
 }
 
-var executeSearch = function () {
+var executeSearch = function() {
     titles = ytObj.parse(query_data, "vid_titles");
     ids = ytObj.parse(query_data, "vid_ids");
     //descs = ytObj.parse(query_data, "vid_descriptions");
@@ -38,44 +53,60 @@ var executeSearch = function () {
     for (loopCount = 0; loopCount < amount; loopCount++) {
         if (type[loopCount] === "youtube#video" || type[loopCount] === "youtube#playlist") {
             document.getElementById('videoGrid').innerHTML =
-                document.getElementById('videoGrid').innerHTML +
-                '<li>' +
-                '<a href=javascript:void(0) onclick=showVideo(' + loopCount + ');><img src="' + thumbs[loopCount] + '" height=150 width=200 alt="Video Thumbnail"/></a>' + lb +
-                '<b>Video Title: </b>' + titles[loopCount] + lb +
+            document.getElementById('videoGrid').innerHTML +
+            '<li>' +
+            '<a href=javascript:void(0) onclick=showVideo(' + loopCount + ');><img src="' + thumbs[loopCount] + '" height=150 width=200 alt="Video Thumbnail"/></a>' + lb +
+            '<b>Video Title: </b>' + titles[loopCount] + lb +
                 //'<span class="vidDescs">' + '<b>Video Description </b>' + descs[loopCount] + '</span>' + lb +
                 '<b>Channel Name: </b>' + channels[loopCount] + '</li>';
+            }
         }
-    }
-    $("#videoGrid").show(200);
-}
-
-function loadMore() {
-    hideGrid();
-
-    var defferedObj_two = $.Deferred();
-    var searchQuery = $('#searchField').val();
-    try {
-        loadMoreCount++;
-        ytObj.youtube("search", "snippet", "q=" + searchQuery, pageToken(ytObj.RESPONSE));
-        if (!loadMoreCount === 1) { }
-        $('#loadMoreBtn').attr("value", "Load More | Pg.1-" + loadMoreCount);
-    } catch (err) {
-        console.log("Request Error. You may be making too many simultaneous requests.");
+        $("#videoGrid").show(200);
     }
 
-    setTimeout(function () {
-        defferedObj_two.resolve();
-    }, 420);
-    query_data.push(ytObj.RESPONSE);
+    function loadMore() {
+        hideGrid();
 
-    return defferedObj_two;
-}
+        var searchQuery = $('#searchField').val().trim();
+        if (searchQuery.length === 0) {
+            return rejectedPromise();
+        }
+
+        var previousResponse = query_data[query_data.length - 1];
+        var nextPageToken;
+
+        try {
+            nextPageToken = pageToken(previousResponse);
+        } catch (err) {
+            console.log("Unable to determine next page token:", err);
+            return rejectedPromise(err);
+        }
+
+        try {
+            loadMoreCount++;
+            ytObj.youtube("search", "snippet", "q=" + encodeURIComponent(searchQuery), nextPageToken);
+            $('#loadMoreBtn').attr("value", "Load More | Pg.1-" + loadMoreCount);
+        } catch (err) {
+            console.log("Request Error. You may be making too many simultaneous requests.", err);
+            return rejectedPromise(err);
+        }
+
+        var request = ytObj.RESPONSE;
+
+        if (!request || typeof request.done !== "function") {
+            return rejectedPromise();
+        }
+
+        query_data.push(request);
+
+        return request;
+    }
 //enablejsapi=1 to embedd params to shut off vid on close
 function showVideo(loopCount, videoId) {
     var embedId;
     var titleToUse;
     var videoEmbedSuffix = "?enablejsapi=1&autoplay=1&rel=0&showinfo=0&iv_load_policy=3&color=white&fs=0&disablekb=0&cc_load_policy=0";
-
+    
     if (loopCount == -1 && (videoId != undefined && videoId != "undefined" && videoId != null) && videoId.length > 3) {
         // A specific video has been requested (i.e. user clicked a link)
         embedId = videoId + videoEmbedSuffix;
@@ -92,12 +123,14 @@ function showVideo(loopCount, videoId) {
         titleToUse = titles[loopCount];
     }
 
-    // note: you can have onClose below ... alertify.YoutubeDialog(embedId).set({onClose: function() {}...
     alertify.YoutubeDialog(embedId).set({
         frameless: false,
-        title: titleToUse
+        title: titleToUse,
+        onclose: function() {
+            alertify.success('<span style="display:block;text-align:center;color:white;">Video Paused.',2);
+        }
     });
-
+    
     // We want to hide all except the search field and the clear button, so we can give the user
     // the choice of re-using their last search query or clearing it. 
     hideGrid();
@@ -106,7 +139,7 @@ function showVideo(loopCount, videoId) {
     loadMoreCount = 1;
 }
 function hideGrid(page) {
-    $("#videoGrid").hide(200, function () {
+    $("#videoGrid").hide(200, function() {
         document.getElementById('videoGrid').innerHTML = "";
     });
     if (page) {
@@ -118,16 +151,7 @@ function hideGrid(page) {
     }
 }
 
-function whatsThisClick() {
-    alertify
-        .alert("What's This?", "YouWork is an <a href='https://github.com/tash-had/YouWork' target='_blank'>open source</a> " +
-            "Chrome extension that aims to minimize distractions by redirecting YouTube to this web page, " + 
-            "which acts as a minimal version of YouTube. This prevents you from aimlessly binging on YouTube " + 
-            "videos, and helps you be more intentional in what you watch. If you have questions, you can contact me "+ 
-            "<a href='https://tash-had.com/#contact' target='_blank'>here</a>.");
-}
-
-$("#searchField").keyup(function (event) {
+$("#searchField").keyup(function(event) {
     if (event.keyCode == 13) {
         $("#searchBtn").click();
     }
